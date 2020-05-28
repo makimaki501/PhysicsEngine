@@ -1,19 +1,29 @@
 #include "DxLib.h"
 
-int PlayerGraph, PlayerGraph2, PlayerGraph3, PlayerGraph4, PlayerGraph5, PlayerGraph6;
-//物体の位置
-int px, py, px2, px3, px4,py2,py3,py4;
-//物体の速度
-float vx, vy, vx2,vy3,vy4;
-//物体の加速度
-float ax, ay;
-//物体の重さ
-float m1, m2;
-//重力加速度
-float g;
-//時間
-float t,time;
+enum SideState
+{
+	Right,
+	Left,
+};
+SideState sideState;
 
+//スペース用
+int SPACE;
+
+//縦幅、横幅
+int Circle_Width, Circle_Height;
+//位置
+float PosX, PosY;
+//今がジャンプ中かどうか
+bool IsJamp;
+//等速直線運動
+bool moveX;
+float moveXScale;
+
+int JampPowerCnt;
+float JampPower;
+
+float prevY, tempY;
 
 // WinMain関数
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
@@ -26,74 +36,168 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		return -1;				// エラーが起きたら直ちに終了
 	}
 
+	sideState = Right;
+
+	SPACE = -1;
+	Circle_Width = 40;
+	Circle_Height = 40;
+	PosY = 350;
+	PosX = 50;
+	IsJamp = false;
+	moveX = false;
+	moveXScale = 0.5f;
+
+	prevY = 0, tempY = 0;
+	JampPowerCnt = 0;
+	JampPower = 1.0f;
+
 	// 描画先画面を裏画面にセット
 	SetDrawScreen(DX_SCREEN_BACK);
 
-	// グラフィックのロード
-	PlayerGraph = LoadGraph(L"Player.png");
-	PlayerGraph2 = LoadGraph(L"Player.png");
-	PlayerGraph3 = LoadGraph(L"Player.png");
-	PlayerGraph4 = LoadGraph(L"Player.png");
-	PlayerGraph5 = LoadGraph(L"Player2.png");
-	PlayerGraph6 = LoadGraph(L"Player.png");
-	px = 30; px2 = 30; py = 400; px3 = 30; px4 = 100; py2 = 0;
-	vx = 1.5f;
-	vx2 = 0.02f;
 
-	m1 = 5.0f; m2 = 20.0f;
-
-	vy3 = m1 * 1.5f;
-	vy4 = m2 * 1.5f;
-	g = 0.98f;
-	t = 0; time = 0;
-	ax = 0;
-	ay = 0;
-	py3 = 20;
-	py4 = 20;
-	// 移動ルーチン
 	while (1)
 	{
-		t++;
 		// 画面を初期化する
 		ClearDrawScreen();
-		//等速度運動
-		px += vx;
-		if (px >= 640) {
-			px = 0 - 64;
+
+#pragma region 文字
+		DrawFormatString(0, 0, GetColor(255, 255, 255), L"Y座標：%f", PosY);
+		DrawFormatString(0, 20, GetColor(255, 255, 255), L"ジャンプパワー：%d", JampPowerCnt);
+		switch (sideState)
+		{
+		case Right:
+			DrawFormatString(300, 20, GetColor(255, 255, 255), L"今向いている向きは：右");
+			break;
+		case Left:
+			DrawFormatString(300, 20, GetColor(255, 255, 255), L"今向いている向きは：左");
+			break;
 		}
-		//等加速度運動
-		ax += vx2;
-		px2 += ax;
-		if (px2 >= 640) {
-			px2 = 0 - 64;
+		DrawFormatString(300, 0, GetColor(255, 255, 0), L"アローキーで向いている方向を選択");
+#pragma endregion
+		
+#pragma region ジャンプ処理
+
+		if (IsJamp) {
+			tempY = PosY;
+			PosY += (PosY - prevY) + 1 * JampPower;
+			prevY = tempY;
+			if (PosY >= 350) {
+				IsJamp = false;
+				moveX = false;
+				PosY = 350;
+				JampPowerCnt = 0;
+				JampPower = 1.0f;
+			}
 		}
-		if (ax >= 20) {
-			ax = 20;
+#pragma endregion
+
+#pragma region ジャンプ中の移動
+		if (moveX) {
+			switch (sideState)
+			{
+			case Right:
+				PosX +=moveXScale;
+				break;
+			case Left:
+				PosX -= moveXScale;
+				break;
+			default:
+				break;
+			}
 		}
-		//F=ma7
-		if (t >= 180) {
-			py3 += vy3;
-			py4 += vy4;
+#pragma endregion
+
+#pragma region 方向の判定
+		if (CheckHitKey(KEY_INPUT_RIGHT) == 1) {
+			sideState = Right;
 		}
-		if (py3 >= 600) {
-			py3 = 600;
+		if (CheckHitKey(KEY_INPUT_LEFT) == 1) {
+			sideState = Left;
 		}
-		if (py4 >= 600) {
-			py4 = 600;
+#pragma endregion
+
+
+#pragma region SPACE処理
+		if (CheckHitKey(KEY_INPUT_SPACE) == 0)
+		{
+			// 押されていない
+			if (SPACE > 0)
+				SPACE = -1;		// SPACEキーが離れた瞬間
+			else
+				SPACE = 0;		// SPACEキーが離れている状態
 		}
-		//自由落下
-		ay += 0.5*g;
-		py2 +=ay;
-		if (py2 >= 500) {
-			py2 = 500;
+		else
+		{
+			// 押されている
+			SPACE++;				// SPACEキーが押されている間は値を増やし続ける
+			JampPowerCnt++;
 		}
-		//プレイヤーを描画
-		DrawGraph(30, 400, PlayerGraph, TRUE);
-		DrawGraph(px, py - 96, PlayerGraph2, TRUE);
-		DrawGraph(px2, py - 96 * 2, PlayerGraph3, TRUE);
-		DrawGraph(px3, py3, PlayerGraph4, TRUE);
-		DrawGraph(px4, py4, PlayerGraph5, TRUE);
-		DrawGraph(540, py2, PlayerGraph6, TRUE);
+
+		if (PosY < 350) {
+			SPACE = 0;
+		}
+
+		if (SPACE == -1) {
+			IsJamp = true;
+			moveX = true;
+			prevY = PosY;
+			PosY = PosY - 20;
+			
+		}
+		else if (SPACE >= 1) {
+			Circle_Width = 60;
+			Circle_Height = 20;
+			if (PosY == 350)
+				PosY = 370;
+		}
+		else
+		{
+			Circle_Width = 40;
+			Circle_Height = 40;
+		}
+
+#pragma endregion
+
+#pragma region ジャンプパワー
+		if (JampPowerCnt < 45) {
+			JampPower = 1.0f;
+			moveXScale = 0.5f;
+		}
+		if (JampPowerCnt >= 45 && JampPowerCnt < 90) {
+			JampPower = 0.8f;
+			moveXScale = 0.75f;
+		}
+		if (JampPowerCnt >= 90 && JampPowerCnt < 135) {
+			JampPower = 0.6f;
+			moveXScale = 1.0f;
+		}
+	    if (JampPowerCnt >= 135 && JampPowerCnt < 180) {
+			JampPower = 0.4f;
+			moveXScale = 1.25f;
+		}
+		if (JampPowerCnt >= 180) {
+			JampPower = 0.2f;
+			moveXScale = 1.5f;
+		}
+#pragma endregion
+
+
+		//線
+		DrawLine(0, 390, 640, 390, GetColor(255, 255, 255));
+
+
+
+		//画面外に行けいないように(横)
+		if (PosX <= 40) {
+			PosX = 40;
+		}
+		else if (PosX >= 600) {
+			PosX = 600;
+		}
+
+		//楕円表示
+		DrawOval(PosX, PosY, Circle_Width, Circle_Height, GetColor(150, 150, 20), TRUE);
+
 
 		// 裏画面の内容を表画面に反映させる
 		ScreenFlip();
