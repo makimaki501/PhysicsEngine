@@ -44,9 +44,19 @@ Vector2D &Vector2D::operator-=(const Vector2D & vec)
 }
 
 //演算子オーバーロード「*」
-Vector2D Vector2D::operator*(float scale)
+Vector2D Vector2D::operator*(const float scale)
 {
 	Vector2D t(this->x * scale, this->y * scale);
+
+	return t;
+}
+
+
+
+//演算子オーバーロード「/」
+Vector2D Vector2D::operator/(const float scale)
+{
+	Vector2D t(this->x / scale, this->y / scale);
 
 	return t;
 }

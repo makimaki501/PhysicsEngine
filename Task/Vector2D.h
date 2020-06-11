@@ -25,6 +25,11 @@ public:
 	//演算子オーバーロード「*」
 	Vector2D operator *(const float scale);
 
+	//Vector2D operator *(float scale);
+
+	//演算子オーバーロード「/」
+	Vector2D operator /(const float scale);
+
 	//内積
 	float Dot(const Vector2D& vec);
 

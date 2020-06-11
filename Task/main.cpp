@@ -4,35 +4,19 @@
 //ècïùÅAâ°ïù
 int M_Circle_Width, M_Circle_Height;
 int m_Circle_Width, m_Circle_Height;
-//à íu
-float PosX, PosY;
-float PosX2, PosY2;
-
-//ë¨ìx
-float M_v, m_v;
-float m_v1, m_v2;
 
 
+//ë¨ìx(2éüå≥)
+Vector2D v1, v2;
+Vector2D pos1, pos2;
 
 //îºåa
 float M_radius, m_radius;
 //îΩî≠åWêî
 float e;
 //éøó 
-float M, m;
-
-//îΩî≠
-float Repulsion(float e, float M, float m, float Mv, float mv) {
-	float v;
-
-	if (e == 1) {
-		v = ((M - m) + 2 * mv) / (M + m);
-	}
-	else {
-		v = (e * m * (m_v - M_v) + M_v + m_v) / (M + m);
-	}
-	return v;
-}
+float m1, m2;
+bool isTouch;
 
 // WinMainä÷êî
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
@@ -46,26 +30,29 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	}
 
 	M_radius = 40;
-	m_radius = 20;
+	m_radius = 40;
 
 	M_Circle_Width = M_radius;
 	M_Circle_Height = M_radius;
 	m_Circle_Width = m_radius;
 	m_Circle_Height = m_radius;
 
-	PosY = 350, PosX = 50;
-	PosY2 = 370, PosX2 = 550;
 
 
 	//ê›íË
-	M_v = 2.0f;   //ëÂÇ´Ç¢â~ÇÃèâë¨ìx
-	m_v = -2.0f;  //è¨Ç≥Ç¢â~ÇÃèâë¨ìx
 	e = 1.0f;     //îΩî≠åWêî
-	M = 1.0f;     //ëÂÇ´Ç¢â~ÇÃéøó 
-	m = 0.5f;     //è¨Ç≥Ç¢â~ÇÃéøó 
+	m1 = 1.0f;     //ëÂÇ´Ç¢â~ÇÃéøó 
+	m2 = 1.0f;    //è¨Ç≥Ç¢â~ÇÃéøó 
+
+	//2éüå≥
+	v1 = Vector2D(1, 1);
+	v2 = Vector2D(-1, 1);
+	pos1 = Vector2D(30, 50);
+	pos2 = Vector2D(550, 50);
 
 	Collision collision;
 
+	isTouch = false;
 
 	// ï`âÊêÊâÊñ Çó†âÊñ Ç…ÉZÉbÉg
 	SetDrawScreen(DX_SCREEN_BACK);
@@ -76,39 +63,63 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		// âÊñ Çèâä˙âªÇ∑ÇÈ
 		ClearDrawScreen();
 
+		pos1 += v1;
+		pos2 += v2;
 
-		PosX += M_v;
-		PosX2 += m_v;
+		DrawFormatString(pos1.x + M_radius, pos1.y + 40, GetColor(255, 0, 0), L"%f", v1);
+		DrawFormatString(pos2.x + m_radius, pos2.y + 40, GetColor(255, 0, 0), L"%f", v2);
 
-		DrawFormatString(PosX + M_radius, 400, GetColor(255, 0, 0), L"%f", M_v);
-		DrawFormatString(PosX2 + m_radius, 400, GetColor(255, 0, 0), L"%f", m_v);
-
-		if (collision.CircleCollision(Vector2D(PosX, PosY), M_radius, Vector2D(PosX2, PosY2), m_radius)) {
+		if (collision.CircleCollision(Vector2D(pos1.x, pos1.y),
+			40, Vector2D(pos2.x, pos2.y), 40) && !isTouch) {
 			DrawString(0, 0, L"ìñÇΩÇ¡ÇΩÅI", GetColor(255, 0, 0));
-			M_v = 0;
-			m_v = 0;
+			//v1 = Vector2D();
+			//v2 = Vector2D();
 
-			/*float V = Repulsion(e, m, M, m_v, M_v);
-			float v = Repulsion(e, M, m, M_v, m_v);
+			Vector2D s = pos2 - pos1;
+			Vector2D n = (pos2 - pos1).Normalize();
 
-			M_v = V;
-			m_v = v;*/
+			Vector2D prevV1 = v1;
+			Vector2D prevV2 = v2;
+#pragma region é∏îs
+			//v1 = prevV1 - Vector2D((((((1 + e) / (m1*m2)) / m2 + m1))*(prevV1.x - prevV2.y)*n.x))*n.x) / m1, ((((((1 + e)*m1*m2) / m2 + m1))*(prevV1.y - prevV2.y)*n.y)*n.y) / m1);
+			//v2 = prevV2 - Vector2D((((((1 + e) / (m2*m1)) / m2 + m1))*(prevV2 - prevV1).Dot(n))*n.x) / m2, ((((((1 + e)*m2*m1) / m2 + m1))*(prevV2.y - prevV1.y).n.y)*n.y) / m2);
+			/*v1 = Vector2D();
+			v2 = Vector2D();*/
+			//v1.x = -(((((1 + e) * m1*m2) / m1 + m2))*(prevV1 - prevV2).Dot(n))*n.x / m1 + prevV1.x;
+			//v1.y = -(((((1 + e) * m1*m2) / m1 + m2))*(prevV1 - prevV2).Dot(n))*n.y / m1 + prevV1.y;
+
+			//v2.x = -(((((1 + e) * m1*m2) / m1 + m2))*(prevV2 - prevV1).Dot(n))*n.x / m2 + prevV2.x;
+			//v2.y = -(((((1 + e) * m1*m2) / m1 + m2))*(prevV2 - prevV1).Dot(n))*n.y / m2 + prevV2.y;
+#pragma endregion
+			if (m1 == m2) {
+				v1 = (n * -((prevV1 - prevV2).Dot(n))) + prevV1;
+				v2 = (n * -((prevV2 - prevV1).Dot(n))) + prevV2;
+			}
+			isTouch = true;
 		}
 		else {
-
+			isTouch = false;
 		}
 
-		if (PosX < 0 || PosX>560) {
-			M_v = -M_v;
+		if (pos1.x < 0 || pos1.x>560) {
+			v1 = Vector2D(-v1.x, -v1.y);
 		}
-		if (PosX2 < 0 || PosX2>600) {
-			m_v = -m_v;
+		if (pos1.y < 0 || pos1.y>400) {
+			v1 = Vector2D(-v1.x, -v1.y);
+		}
+		if (pos2.x < 0 || pos2.x>560) {
+			v2 = Vector2D(-v2.x, -v2.y);
+
+		}
+		if (pos2.y < 0 || pos2.y>400) {
+			v2 = Vector2D(-v2.x, -v2.y);
+
 		}
 
 		//ë»â~ï\é¶
-		DrawCircle(PosX + M_radius, PosY + M_radius, M_radius, GetColor(150, 150, 20), FALSE);
+		DrawCircle(pos1.x + M_radius, pos1.y + M_radius, M_radius, GetColor(150, 150, 20), FALSE);
 
-		DrawCircle(PosX2 + m_radius, PosY2 + m_radius, m_radius, GetColor(0, 150, 20), FALSE);
+		DrawCircle(pos2.x + m_radius, pos2.y + m_radius, m_radius, GetColor(0, 150, 20), FALSE);
 
 		// ó†âÊñ ÇÃì‡óeÇï\âÊñ Ç…îΩâfÇ≥ÇπÇÈ
 		ScreenFlip();
