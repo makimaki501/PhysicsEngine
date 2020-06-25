@@ -14,4 +14,8 @@ public:
 	bool RectCollision(const Vector2D& rectPosA, const Vector2D& rectSizeA,
 		const Vector2D& rectPosB, const Vector2D& rectSizeB);
 
+	//‰~‘Îü•ª‚Ì”»’è
+	bool Circle_LineCollision(Vector2D& circle,float circleRadius
+		, Vector2D& v1,Vector2D& v2);
+
 };

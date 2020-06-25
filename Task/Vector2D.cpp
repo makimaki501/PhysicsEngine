@@ -51,6 +51,12 @@ Vector2D Vector2D::operator*(const float scale)
 	return t;
 }
 
+Vector2D Vector2D::operator*(const Vector2D & vec)
+{
+	Vector2D t(this->x * vec.x, this->y * vec.y);
+	return t;
+}
+
 
 
 //演算子オーバーロード「/」
@@ -74,17 +80,22 @@ float Vector2D::Cross(const Vector2D & vec)
 }
 
 //長さ
-float Vector2D::Magnitude()
+float Vector2D::Length()
 {
 	return sqrt(x * x + y * y);
+}
+
+float Vector2D::LengthSqrt()
+{
+	return this->Length()*this->Length();
 }
 
 //正規化
 Vector2D Vector2D::Normalize()
 {
 	Vector2D t(0, 0);
-	t.x = x / Magnitude();
-	t.y = y / Magnitude();
+	t.x = x / Length();
+	t.y = y / Length();
 
 	return t;
 }

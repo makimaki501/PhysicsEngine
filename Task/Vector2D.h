@@ -25,7 +25,8 @@ public:
 	//演算子オーバーロード「*」
 	Vector2D operator *(const float scale);
 
-	//Vector2D operator *(float scale);
+	Vector2D operator*(const Vector2D&vec);
+
 
 	//演算子オーバーロード「/」
 	Vector2D operator /(const float scale);
@@ -36,8 +37,11 @@ public:
 	//外積
 	float Cross(const Vector2D& vec);
 
-	//長さを求める
-	float Magnitude();
+	//大きさを求める
+	float Length();
+
+	//大きさの2乗
+	float LengthSqrt();
 
 	//正規化
 	Vector2D Normalize();
